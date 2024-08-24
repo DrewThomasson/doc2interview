@@ -7,11 +7,23 @@ import torch
 from TTS.api import TTS
 from tqdm import tqdm
 import fitz  # PyMuPDF
+from newspaper import Article
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+def fetch_text_from_url(url):
+    """Fetch main text from the provided URL using newspaper3k."""
+    try:
+        article = Article(url)
+        article.download()
+        article.parse()
+        return article.text
+    except Exception as e:
+        logging.error(f"Failed to fetch text from URL: {e}")
+        return None
 
 def convert_pdf_to_text(pdf_path):
     """Convert PDF file to text using PyMuPDF."""
@@ -118,9 +130,13 @@ async def generate_and_combine_audio_files(dialogues, output_dir, base_name):
     combine_wav_files(chapter_files, combined_audio_path)
     return combined_audio_path
 
-async def main_async(input_file, language):
+async def main_async(input_data, language):
     """Main function to process input and generate audio."""
-    text = convert_pdf_to_text(input_file)
+    text = ""
+    if isinstance(input_data, Path):
+        text = convert_pdf_to_text(input_data)
+    else:
+        text = fetch_text_from_url(input_data)
     dialogues = get_chat_response(text, language)
     base_output_dir = Path("Working_files")
     audio_output_dir = base_output_dir / "audio_files"
@@ -131,10 +147,11 @@ async def main_async(input_file, language):
     combined_audio_path.rename(final_output_dir / combined_audio_path.name)
     return combined_audio_path
 
-def gradio_interface(input_file, language):
+def gradio_interface(input_file, url, language):
     """Gradio interface to process input and generate audio."""
+    input_data = input_file if input_file else url
     try:
-        audio_file_path = asyncio.run(main_async(input_file, language))
+        audio_file_path = asyncio.run(main_async(input_data, language))
         return audio_file_path
     except Exception as e:
         logging.error(f"{e}")
@@ -145,9 +162,11 @@ demo = gr.Interface(
     fn=gradio_interface,
     inputs=[
         gr.File(label="Upload PDF / Subir PDF", type="filepath"),
+        gr.Textbox(label="Or Enter Article URL", placeholder="Enter URL here"),
         gr.Dropdown(label="Select Language / Seleccionar idioma", choices=["English", "Spanish"], value="English")
     ],
-    outputs=gr.Audio(label="Generated Interview / Entrevista generada")
+    outputs=gr.Audio(label="Generated Interview / Entrevista generada"),
+    allow_flagging="never"
 )
 
 # Launch Gradio interface
