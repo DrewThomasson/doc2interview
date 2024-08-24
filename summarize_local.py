@@ -153,7 +153,7 @@ def get_chat_response(text, language):
 
 # Setup TTS using 🐸TTS
 device = "cuda" if torch.cuda.is_available() else "cpu"
-tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+#tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
 
 def remove_prefix(text):
     """Remove any prefix before and including the first colon, if present."""
@@ -268,7 +268,7 @@ def convert_chapters_to_audio_standard_model(chapters_dir, output_audio_dir, tar
         os.makedirs(output_audio_dir)
     Narrerator_status = True
 
-    for chapter_file in sorted(os.listdir(chapters_dir)):
+    for chapter_file in sorted(os.listdir(chapters_dir), key=lambda x: int(re.search(r"chapter_(\d+).txt", x).group(1)) if re.search(r"chapter_(\d+).txt", x) else float('inf')):
         if chapter_file.endswith('.txt'):
             match = re.search(r"chapter_(\d+).txt", chapter_file)
             if match:
