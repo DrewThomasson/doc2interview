@@ -4,7 +4,6 @@ import pandas as pd
 from pathlib import Path
 from pydub import AudioSegment
 import gradio as gr
-from tempfile import NamedTemporaryFile
 import torch
 from TTS.api import TTS
 from tqdm import tqdm
@@ -65,13 +64,21 @@ def get_chat_response(text, language):
 device = "cuda" if torch.cuda.is_available() else "cpu"
 tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
 
-def generate_audio(dialogue, index, output_dir):
+def remove_prefix(text):
+    """Remove any prefix before and including the first colon, if present."""
+    index = text.find(':')
+    if index != -1:
+        return text[index + 1:].lstrip()
+    return text
+
+def generate_audio(dialogue, is_interviewer, output_dir):
     """Generate audio from a dialogue line using 🐸TTS."""
-    speaker_wav = "Interviewer.mp3" if index % 2 == 0 else "Female.wav"
-    speaker_name = "Interviewer" if index % 2 == 0 else "Female"
-    logging.info(f"Generating audio for chunk {index + 1}: Cloning voice of {speaker_name}")
-    speech_file_path = output_dir / f"speech_{index + 1}.wav"
-    tts.tts_to_file(text=dialogue, speaker_wav=speaker_wav, language="en", file_path=str(speech_file_path))
+    cleaned_text = remove_prefix(dialogue)
+    speaker_wav = "Interviewer.mp3" if is_interviewer else "Female.wav"
+    speaker_name = "Interviewer" if is_interviewer else "Female"
+    logging.info(f"Generating audio for: Cloning voice of {speaker_name}")
+    speech_file_path = output_dir / f"speech_{speaker_name}_{cleaned_text[:10].replace(' ', '_')}.wav"
+    tts.tts_to_file(text=cleaned_text, speaker_wav=speaker_wav, language="en", file_path=str(speech_file_path))
     return speech_file_path
 
 def combine_wav_files(chapter_files, output_path):
@@ -86,9 +93,12 @@ def combine_wav_files(chapter_files, output_path):
 async def generate_and_combine_audio_files(dialogues, output_dir, base_name):
     """Generate audio files for dialogues and combine them."""
     chapter_files = []
-    for index, dialogue in enumerate(tqdm(dialogues, desc="Generating audio")):
-        speech_file_path = generate_audio(dialogue, index, output_dir)
-        chapter_files.append(speech_file_path)
+    is_interviewer = True  # Start with interviewer as the first speaker
+    for dialogue in tqdm(dialogues, desc="Generating audio"):
+        if dialogue.strip():  # Check if there is actual dialogue content
+            speech_file_path = generate_audio(dialogue, is_interviewer, output_dir)
+            chapter_files.append(speech_file_path)
+            is_interviewer = not is_interviewer  # Toggle speaker after each dialogue block
     combined_audio_path = output_dir / f"{base_name}.wav"
     combine_wav_files(chapter_files, combined_audio_path)
     return combined_audio_path
