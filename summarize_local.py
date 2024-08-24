@@ -329,8 +329,6 @@ async def main_async(input_data, language):
     else:
         text = fetch_text_from_url(input_data)
     dialogues = get_chat_response(text, language)
-    audio_output_dir = Path("audio_files")
-    audio_output_dir.mkdir(parents=True, exist_ok=True)
     #create chapter files from dialog
     chaptertxt_folder = "chapters_txt"
     create_chapter_files(dialogues, chaptertxt_folder)
