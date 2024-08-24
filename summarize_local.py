@@ -33,6 +33,9 @@ from TTS.api import TTS
 from tqdm import tqdm
 import fitz  # PyMuPDF
 from newspaper import Article
+from ollama import Client
+
+import os
 
 
 
@@ -112,7 +115,6 @@ def convert_pdf_to_text(pdf_path):
             text += page.get_text()
     return text
 
-from ollama import Client
 
 def run_ollama(prompt, model="phi3.5"):
     """Run Ollama locally with the given model and prompt using the Python API."""
@@ -162,7 +164,6 @@ def remove_prefix(text):
         return text[index + 1:].lstrip()
     return text
 
-import os
 
 def remove_prefix_from_all_txt_files_in_folder(folder_path):
     """Remove any prefix before and including the first colon in every .txt file in the specified folder."""
@@ -343,6 +344,12 @@ async def main_async(input_data, language):
     #combine all the audio files into a single final output audio file
     final_output_audio_dir = "final_output_audio_dir"
     combine_wav_files(output_audio_dir, final_output_audio_dir, "final_output_audio.wav")
+
+    #wipe all the temp folders
+    wipe_folder("Working_files")
+    wipe_folder("Working_files/temp")
+    wipe_folder("output_audio")
+    wipe_folder("chapters_txt")
 
 
     return "Complete!"
