@@ -1,0 +1,9 @@
+pydub
+nltk
+torch
+tqdm
+gradio
+PyMuPDF  # This is the PyMuPDF package, necessary for handling PDF files
+newspaper3k
+ollama  # This might need to be also installed from a different source or setup as per official documentation
+tts
