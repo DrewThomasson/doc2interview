@@ -60,6 +60,10 @@ Check out this sample audio from a generated interview:
 
 https://github.com/user-attachments/assets/77e6046d-18e0-41dd-b034-7cdd709b9daf
 
+[Generated from this article](https://www.chosun.com/english/industry-en/2024/08/21/GGIYIGY43VHHVA2J74VAVWLEDQ/)
+
+
+
 
 
 ## 🤝 Contributing
