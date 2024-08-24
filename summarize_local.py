@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import pandas as pd
 from pathlib import Path
 from pydub import AudioSegment
 import gradio as gr
@@ -71,15 +70,31 @@ def remove_prefix(text):
         return text[index + 1:].lstrip()
     return text
 
+def split_long_sentence(sentence, max_length=230, max_pauses=8):
+    """Splits a sentence into smaller parts if it's too long or has too many pauses."""
+    parts = []
+    while len(sentence) > max_length or sentence.count(',') + sentence.count(';') + sentence.count('.') > max_pauses:
+        possible_splits = [i for i, char in enumerate(sentence) if char in ',;.' and i < max_length]
+        if possible_splits:
+            split_at = possible_splits[-1] + 1
+        else:
+            split_at = max_length
+        parts.append(sentence[:split_at].strip())
+        sentence = sentence[split_at:].strip()
+    parts.append(sentence)
+    return parts
+
 def generate_audio(dialogue, is_interviewer, output_dir):
-    """Generate audio from a dialogue line using 🐸TTS."""
+    """Generate audio from a dialogue line using 🐸TTS after chunking it."""
     cleaned_text = remove_prefix(dialogue)
-    speaker_wav = "Interviewer.mp3" if is_interviewer else "Female.wav"
-    speaker_name = "Interviewer" if is_interviewer else "Female"
-    logging.info(f"Generating audio for: Cloning voice of {speaker_name}")
-    speech_file_path = output_dir / f"speech_{speaker_name}_{cleaned_text[:10].replace(' ', '_')}.wav"
-    tts.tts_to_file(text=cleaned_text, speaker_wav=speaker_wav, language="en", file_path=str(speech_file_path))
-    return speech_file_path
+    chunks = split_long_sentence(cleaned_text)
+    for index, chunk in enumerate(chunks):
+        speaker_wav = "Interviewer.mp3" if is_interviewer else "Female.wav"
+        speaker_name = "Interviewer" if is_interviewer else "Female"
+        logging.info(f"Generating audio for chunk {index + 1} of {speaker_name}")
+        speech_file_path = output_dir / f"speech_{speaker_name}_{index + 1}.wav"
+        tts.tts_to_file(text=chunk, speaker_wav=speaker_wav, language="en", file_path=str(speech_file_path))
+    return [output_dir / f"speech_{speaker_name}_{i + 1}.wav" for i in range(len(chunks))]
 
 def combine_wav_files(chapter_files, output_path):
     """Combine WAV files into a single file."""
@@ -96,8 +111,8 @@ async def generate_and_combine_audio_files(dialogues, output_dir, base_name):
     is_interviewer = True  # Start with interviewer as the first speaker
     for dialogue in tqdm(dialogues, desc="Generating audio"):
         if dialogue.strip():  # Check if there is actual dialogue content
-            speech_file_path = generate_audio(dialogue, is_interviewer, output_dir)
-            chapter_files.append(speech_file_path)
+            speech_files = generate_audio(dialogue, is_interviewer, output_dir)
+            chapter_files.extend(speech_files)
             is_interviewer = not is_interviewer  # Toggle speaker after each dialogue block
     combined_audio_path = output_dir / f"{base_name}.wav"
     combine_wav_files(chapter_files, combined_audio_path)
