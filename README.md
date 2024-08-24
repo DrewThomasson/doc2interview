@@ -29,7 +29,7 @@ Ensure you have the following installed:
      ```
 
 3. **Setup Ollama**:
-   - Install Ollama following the official documentation.
+   - Install Ollama following the official documentation. [link here](https://ollama.com)
    - Pull the `phi3.5` model necessary for running the script:
      ```bash
      ollama pull phi3.5
