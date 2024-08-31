@@ -116,6 +116,7 @@ def convert_pdf_to_text(pdf_path):
     return text
 
 
+#Standard non-streaming version
 def run_ollama(prompt, model="phi3.5"):
     """Run Ollama locally with the given model and prompt using the Python API."""
     client = Client()
@@ -128,6 +129,48 @@ def run_ollama(prompt, model="phi3.5"):
     except Exception as e:
         logging.error(f"Ollama error: {str(e)}")
         return None
+
+
+# Streaming version with buffered output
+'''
+def run_ollama(prompt, model="phi3.5"):
+    """Run Ollama locally with the given model and prompt using the Python API."""
+    client = Client()
+    logging.info(f"Running Ollama with model: {model} and prompt: {prompt}")
+    output = []
+    buffer = ""
+    
+    try:
+        # Stream the response and buffer chunks
+        stream = client.generate(model=model, prompt=prompt, stream=True)
+        for chunk in stream:
+            if 'response' in chunk:
+                buffer += chunk['response']
+                
+                # Print the buffer if a complete sentence or newline is detected
+                if buffer.endswith('.') or buffer.endswith('\n'):
+                    print(buffer, end='', flush=True)
+                    output.append(buffer)
+                    buffer = ""  # Clear buffer after printing
+            else:
+                logging.error(f"Unexpected chunk format: {chunk}")
+        
+        # Print any remaining content in the buffer
+        if buffer:
+            print(buffer, end='', flush=True)
+            output.append(buffer)
+        
+        # Join all chunks to form the complete output
+        full_output = ''.join(output)
+        logging.info(f"Ollama response: {full_output}")
+        print(f"Full output is: {full_output}")
+        return full_output
+    except Exception as e:
+        logging.error(f"Ollama error: {str(e)}")
+        return None
+'''
+
+
 
 def generate_prompt(language, stage):
     """Generate the appropriate prompt based on the language and stage."""
@@ -149,7 +192,7 @@ def generate_prompt(language, stage):
 def get_chat_response(text, language):
     """Generate interview based on text and handle response."""
     prompt_stage = generate_prompt(language, 1)
-    interview = run_ollama(prompt_stage + "\n\n" + text)
+    interview = run_ollama(prompt_stage + "\n\n" + text + "\n\n" + prompt_stage)
     #interview = sample_ollama_response
     return interview.split('\n\n')  # Splitting by two new lines as per the new format
 
@@ -355,14 +398,26 @@ async def main_async(input_data, language):
     return "Complete!"
 
 def gradio_interface(input_file, url, language):
-    """Gradio interface to process input and generate audio."""
-    input_data = input_file if input_file else url
+    # Check if both PDF and URL are provided
+    if input_file is not None and url.strip() != "":
+        return "Error: Please provide either a PDF file or a URL, not both."
+    
+    # Check if a PDF file is provided
+    if input_file is not None:
+        input_data = Path(input_file.name)  # Correctly handle the PDF file
+    elif url.strip() != "":
+        input_data = url  # Use the URL
+    else:
+        return "Error: Please provide a PDF file or a URL."
+    
     try:
+        #audio_file_path = asyncio.run(main_async(input_data, language, input_file is not None))
         audio_file_path = asyncio.run(main_async(input_data, language))
         return audio_file_path
     except Exception as e:
         logging.error(f"{e}")
         return str(e)
+
 
 # Setup Gradio interface
 demo = gr.Interface(
