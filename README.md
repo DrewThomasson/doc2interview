@@ -63,6 +63,21 @@ https://github.com/user-attachments/assets/77e6046d-18e0-41dd-b034-7cdd709b9daf
 [Generated from this article](https://www.chosun.com/english/industry-en/2024/08/21/GGIYIGY43VHHVA2J74VAVWLEDQ/)
 
 
+## To-Do List
+
+- [ ] **Attempt to find a way to remove any ramlbings at the end.**  
+  For more details, see the issue request [here](https://github.com/DrewThomasson/doc2interview/issues/2#issue-2501722522).
+
+- [ ] **Allow users to easily swap the ref audio for either voice actors in gui.**  
+
+- [ ] **Find a way for the program to be able to determine which speakers in generated dialog are male or female.**  
+  Possably by just asking the llm.
+
+- [ ] **Allow user to see streaming llm outout**  
+  Right now you cant see the llm working live in the terminal, and only see the llm output once its finished writing the dialog script.
+
+- [ ] **Have program automatically run the ollama pull command if the specified model isnt found?**  
+  Not that huge of an issue though.
 
 
 
