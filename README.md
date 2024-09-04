@@ -68,7 +68,7 @@ https://github.com/user-attachments/assets/77e6046d-18e0-41dd-b034-7cdd709b9daf
 - [ ] **Attempt to find a way to remove any ramlbings at the end.**  
   For more details, see the issue request [here](https://github.com/DrewThomasson/doc2interview/issues/2#issue-2501722522).
 
-- [ ] **Allow users to easily swap the ref audio for either voice actors in gui.**  
+- [ ] **Allow users to easily swap the ref audio for either voice actors in gui.**
 
 - [ ] **Find a way for the program to be able to determine which speakers in generated dialog are male or female.**  
   Possably by just asking the llm.
@@ -78,6 +78,8 @@ https://github.com/user-attachments/assets/77e6046d-18e0-41dd-b034-7cdd709b9daf
 
 - [ ] **Have program automatically run the ollama pull command if the specified model isnt found?**  
   Not that huge of an issue though.
+
+- [ ] **Have a bulk process mulitple files or documents feature**
 
 
 
