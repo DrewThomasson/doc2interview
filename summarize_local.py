@@ -174,25 +174,41 @@ def run_ollama(prompt, model="phi3.5"):
 
 def generate_prompt(language, stage):
     """Generate the appropriate prompt based on the language and stage."""
-    if language.lower() == "english":
-        return (
-            "English Version:\n\n"
-            "Generate an in-depth and coherent interview in dialogue format that reflects the key aspects of the provided document. "
-            "Include a brief introduction by the interviewer, followed by a series of questions and responses, concluding with a summary."
-            " Output should be plain text, with each dialogue line separated by two new lines."
-        )
-    else:
-        return (
-            "Versión en Español:\n\n"
-            "Genera una entrevista coherente en formato de diálogo que refleje los aspectos clave del documento proporcionado. "
-            "Incluye una breve introducción por el entrevistador, seguida de una serie de preguntas y respuestas, concluyendo con un resumen."
-            " El resultado debe ser texto plano, con cada línea de diálogo separada por dos nuevas líneas."
-        )
+    if stage == 1:
+        if language.lower() == "english":
+            return (
+                "English Version:\n\n"
+                "Generate an in-depth and coherent interview in dialogue format that reflects the key aspects of the provided document. "
+                "Include a brief introduction by the interviewer, followed by a series of questions and responses, concluding with a summary."
+                " Output should be plain text, with each dialogue line separated by two new lines."
+            )
+        else:
+            return (
+                "Versión en Español:\n\n"
+                "Genera una entrevista coherente en formato de diálogo que refleje los aspectos clave del documento proporcionado. "
+                "Incluye una breve introducción por el entrevistador, seguida de una serie de preguntas y respuestas, concluyendo con un resumen."
+                " El resultado debe ser texto plano, con cada línea de diálogo separada por dos nuevas líneas."
+            )
+    if stage == 2:
+        if language.lower() == "english":
+            return (
+                "Please return the given dialog script with any unrelated ramblings removed from it. "
+                "Your response should contain nothing except for the modified script:"
+            )
+        else:
+            return (
+                "Por favor, devuelva el guion de diálogo dado con cualquier divagación no relacionada eliminada. "
+                "Su respuesta debe contener solo el guion modificado:"
+            )
 
 def get_chat_response(text, language):
     """Generate interview based on text and handle response."""
+    print("Crafting Interview...")
     prompt_stage = generate_prompt(language, 1)
     interview = run_ollama(prompt_stage + "\n\n" + text + "\n\n" + prompt_stage)
+    print("Cleaning up Interview...")
+    prompt_stage = generate_prompt(language, 2)
+    cleaned_interview = run_ollama(prompt_stage + "\n\n" + interview + "\n\n" + prompt_stage)
     #interview = sample_ollama_response
     return interview.split('\n\n')  # Splitting by two new lines as per the new format
 
