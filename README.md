@@ -39,7 +39,7 @@ Ensure you have the following installed:
 
 1. **Start the script**:
    ```bash
-   python summarize_local.py  # Replace with your actual script name
+   python summarize_local.py
    ```
 2. **Open the Gradio interface**:
    - The interface will be available in your web browser.
